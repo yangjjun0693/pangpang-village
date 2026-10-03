@@ -55,6 +55,23 @@ export function FloorTour() {
 
       if (!container || !pin || !imageEl || !listEl || !crossSection) return;
 
+      // Lenis 인스턴스 가져와서 ScrollTrigger와 동기화
+      const lenis = (window as any).__lenis__;
+      if (lenis) {
+        ScrollTrigger.scrollerProxy(document.documentElement, {
+          scrollTop(value) {
+            return arguments.length ? lenis.scrollTo(value, { immediate: true }) : lenis.scroll;
+          },
+          getBoundingClientRect() {
+            return { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
+          },
+          pinType: document.documentElement.style.transform ? 'transform' : 'fixed',
+        });
+
+        // Lenis scroll 이벤트마다 ScrollTrigger 업데이트
+        lenis.on('scroll', ScrollTrigger.update);
+      }
+
       // 이미지 크로스페이드 + 리스트 하이라이트 + 단면도 하이라이트
       const floors = FLOOR_DATA;
       const totalFloors = floors.length;
@@ -69,6 +86,7 @@ export function FloorTour() {
           pinSpacing: true,
           scrub: 1,
           anticipatePin: 1,
+          scroller: lenis ? document.documentElement : undefined,
         },
       });
 
@@ -106,6 +124,9 @@ export function FloorTour() {
 
       return () => {
         ScrollTrigger.getAll().forEach((st) => st.kill());
+        if (lenis) {
+          lenis.off('scroll', ScrollTrigger.update);
+        }
       };
     };
 

@@ -10,7 +10,8 @@ export function formatDate(date: Date, pattern: string = 'yyyy년 M월 d일 (E)'
   return format(date, pattern, { locale: ko });
 }
 
-export function formatDateShort(date: Date): string {
+export function formatDateShort(date: Date | null | undefined): string {
+  if (!date) return '';
   return format(date, 'M/d (E)', { locale: ko });
 }
 

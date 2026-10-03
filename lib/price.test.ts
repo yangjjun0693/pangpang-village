@@ -100,7 +100,7 @@ describe('formatPrice', () => {
 });
 
 describe('formatPriceBreakdown', () => {
-  it '기본 내역 문자열 배열 반환', () => {
+  it('기본 내역 문자열 배열 반환', () => {
     const breakdown = {
       nights: 2,
       basePrice: 339000,
@@ -150,7 +150,7 @@ describe('validateCapacity', () => {
 });
 
 describe('generateBookingSummary', () => {
-  it '요약 텍스트에 핵심 정보 포함', () => {
+  it('요약 텍스트에 핵심 정보 포함', () => {
     const params = {
       roomSlug: 'la-mer' as const,
       checkIn: new Date('2025-07-01'),

@@ -16,7 +16,7 @@ import { Badge } from '@/components/ui';
 import { FadeUp, LineReveal } from '@/components/motion';
 import { useBookingStore } from '@/store/booking';
 import { Check, AlertCircle, Info, Copy, ExternalLink } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui';
@@ -72,29 +72,49 @@ export function BookingForm({
     mode: 'onChange',
   });
 
-  const watchedName = useWatch({ control: form.control, name: 'guestName' });
+const watchedName = useWatch({ control: form.control, name: 'guestName' });
   const watchedPhone = useWatch({ control: form.control, name: 'guestPhone' });
 
   // 용량 검증
   const validation = validateCapacity({ adults, children, infants });
-if (!validation.valid) {
-    setCapacityError(validation.message ?? '인원 수를 확인해주세요');
-  } else {
-    setCapacityError(null);
-  }
 
-  // 요금 계산
-  const bookingParams: BookingParams = {
-    roomSlug,
-    checkIn: checkIn!,
-    checkOut: checkOut!,
-    adults,
-    children,
-    infants,
-    bbq,
-  };
+  // 용량 검증 에러 상태 동기화 (useEffect로 무한 루프 방지)
+  useEffect(() => {
+    if (!validation.valid) {
+      setCapacityError(validation.message ?? '인원 수를 확인해주세요');
+    } else {
+      setCapacityError(null);
+    }
+  }, [validation.valid, validation.message]);
 
-  const breakdown: PriceBreakdown = calculatePrice(bookingParams);
+  // 요금 계산 (날짜가 선택된 경우에만)
+  const hasDates = checkIn && checkOut;
+  const bookingParams: BookingParams | null = hasDates
+    ? {
+        roomSlug,
+        checkIn,
+        checkOut,
+        adults,
+        children,
+        infants,
+        bbq,
+      }
+    : null;
+
+  const breakdown: PriceBreakdown = hasDates && bookingParams
+    ? calculatePrice(bookingParams)
+    : {
+        nights: 0,
+        basePrice: 0,
+        accommodationTotal: 0,
+        extraPersons: 0,
+        extraPersonPrice: 0,
+        extraPersonTotal: 0,
+        bbq: false,
+        bbqPrice: 0,
+        subtotal: 0,
+        totalWithBbq: 0,
+      };
 
   // 폼 값 동기화
   const handleNameChange = (value: string) => {
@@ -109,10 +129,10 @@ if (!validation.valid) {
   };
 
   const handleSubmit = (data: BookingFormData) => {
-    if (!checkIn || !checkOut) return;
+    if (!hasDates) return;
 
     const summaryText = generateBookingSummary(
-      bookingParams,
+      bookingParams!,
       breakdown,
       data.guestName,
       data.guestPhone
@@ -123,11 +143,7 @@ if (!validation.valid) {
     onSubmit({ ...data, summary: summaryText });
   };
 
-  const nights = checkIn && checkOut
-    ? Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24))
-    : 0;
-
-  return (
+return (
     <section id="booking" className="section bg-paper-deep" aria-labelledby="booking-title">
       <div className="container">
         <div className="mb-12 md:mb-16 max-w-xl">
@@ -150,9 +166,9 @@ if (!validation.valid) {
                       useBookingStore.getState().setDates(range?.from || null, range?.to || null);
                     }}
                   />
-                  {checkIn && checkOut && (
+{checkIn && checkOut && (
                     <p className="mt-3 text-sm text-basalt/60">
-                      {format(checkIn, 'M월 d일 (E)', { locale: ko })} ~ {format(checkOut, 'M월 d일 (E)', { locale: ko })} · {nights}박
+                      {format(checkIn, 'M월 d일 (E)', { locale: ko })} ~ {format(checkOut, 'M월 d일 (E)', { locale: ko })} · {breakdown.nights}박
                     </p>
                   )}
                 </div>

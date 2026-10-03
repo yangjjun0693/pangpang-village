@@ -5,11 +5,10 @@ import { motion } from 'motion/react';
 import { cn } from '@/lib/cn';
 import { SITE } from '@/config/site';
 import { Button } from '@/components/ui';
-import { useBookingStore, useBookingStoreReady } from '@/store/booking';
+import { useBookingStore } from '@/store/booking';
 
 export function MobileBottomBar() {
   const [visible, setVisible] = useState(false);
-  const ready = useBookingStoreReady();
   const { checkIn, checkOut } = useBookingStore();
   
   const nights = checkIn && checkOut
@@ -25,7 +24,8 @@ export function MobileBottomBar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  if (!visible || !ready) return null;
+  // During static generation, checkIn/checkOut might be null from localStorage
+  if (!visible || !checkIn || !checkOut) return null;
 
   return (
     <motion.div

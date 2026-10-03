@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import Link from 'next/link';
 import { cn } from '@/lib/cn';
@@ -15,7 +15,12 @@ import { formatDateShort } from '@/lib/format';
 
 export function Hero() {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
   const { checkIn, checkOut, roomSlug, setRoomSlug } = useBookingStore();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleQuickReserve = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -95,15 +100,17 @@ export function Hero() {
           </p>
 
           {/* 예약 퀵바 */}
-          <FadeUp delay={0.8} duration={0.8} y={16}>
-            <QuickBookingBar
-              checkIn={checkIn}
-              checkOut={checkOut}
-              roomSlug={roomSlug}
-              onRoomChange={setRoomSlug}
-              onReserveClick={handleQuickReserve}
-            />
-          </FadeUp>
+          {mounted && (
+            <FadeUp delay={0.8} duration={0.8} y={16}>
+              <QuickBookingBar
+                checkIn={checkIn}
+                checkOut={checkOut}
+                roomSlug={roomSlug}
+                onRoomChange={setRoomSlug}
+                onReserveClick={handleQuickReserve}
+              />
+            </FadeUp>
+          )}
         </div>
       </div>
     </section>
