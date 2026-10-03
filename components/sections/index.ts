@@ -1,0 +1,9 @@
+export { Hero } from './Hero';
+export { Concept } from './Concept';
+export { Rooms } from './Rooms';
+export { FloorTour } from './FloorTour';
+export { Facilities } from './Facilities';
+export { Around } from './Around';
+export { Gallery } from './Gallery';
+export { Notice } from './Notice';
+export { Location } from './Location';
