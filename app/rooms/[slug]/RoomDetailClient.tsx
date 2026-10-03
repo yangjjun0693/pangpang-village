@@ -10,7 +10,6 @@ import { ROOM_SPECS, type RoomSpec } from '@/data/content';
 import { Header } from '@/components/layout';
 import { Footer } from '@/components/layout';
 import { MobileBottomBar } from '@/components/layout';
-import { LenisProvider } from '@/components/providers';
 import { Button } from '@/components/ui';
 import { FadeUp, LineReveal, ClipReveal, KenBurns, StaggerContainer, StaggerItem } from '@/components/motion';
 import { Calendar, Users, Maximize2, ChevronLeft, ChevronRight, MapPin, Waves, Flame, Baby, Check } from 'lucide-react';
@@ -44,7 +43,7 @@ export function RoomDetailClient({ room }: RoomDetailClientProps) {
     : 1;
 
   return (
-    <LenisProvider>
+    <>
       <Header />
       <main id="main-content" className="min-h-screen">
         {/* 히어로 - 객실 대표 이미지 */}
@@ -262,7 +261,7 @@ export function RoomDetailClient({ room }: RoomDetailClientProps) {
       </main>
       <Footer />
       <MobileBottomBar />
-    </LenisProvider>
+    </>
   );
 }
 
@@ -436,4 +435,3 @@ function InlineStepper({ label, value, min, max, onChange, unit }: { label: stri
     </div>
   );
 }
-

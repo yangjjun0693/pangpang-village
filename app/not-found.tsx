@@ -7,14 +7,13 @@ import { SITE } from '@/config/site';
 import { Header } from '@/components/layout';
 import { Footer } from '@/components/layout';
 import { MobileBottomBar } from '@/components/layout';
-import { LenisProvider } from '@/components/providers';
 import { FadeUp, LineReveal } from '@/components/motion';
 import { Button } from '@/components/ui';
 import { Home, Search, ArrowLeft } from 'lucide-react';
 
 export default function NotFoundPage() {
   return (
-    <LenisProvider>
+    <>
       <Header />
       <main id="main-content" className="min-h-screen flex items-center justify-center px-6">
         <div className="container max-w-md text-center py-20">
@@ -76,6 +75,6 @@ export default function NotFoundPage() {
       </main>
       <Footer />
       <MobileBottomBar />
-    </LenisProvider>
+    </>
   );
 }

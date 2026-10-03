@@ -1,6 +1,5 @@
 'use client';
 
-import { LenisProvider } from '@/components/providers';
 import { Header } from '@/components/layout';
 import { Footer } from '@/components/layout';
 import { MobileBottomBar } from '@/components/layout';
@@ -20,7 +19,7 @@ import { BookingForm } from '@/components/booking';
 
 export default function HomePage() {
   return (
-    <LenisProvider>
+    <>
       <Header />
       <ClientOnly fallback={<div className="min-h-screen" />}>
         <main id="main-content" className="min-h-screen">
@@ -42,6 +41,6 @@ export default function HomePage() {
         <MobileBottomBar />
       </ClientOnly>
       <Footer />
-    </LenisProvider>
+    </>
   );
 }

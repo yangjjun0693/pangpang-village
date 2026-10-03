@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'motion/react';
 import { cn } from '@/lib/cn';
 import { SITE } from '@/config/site';
@@ -8,7 +8,6 @@ import { NOTICE_ITEMS, USAGE_GUIDE } from '@/data/content';
 import { Header } from '@/components/layout';
 import { Footer } from '@/components/layout';
 import { MobileBottomBar } from '@/components/layout';
-import { LenisProvider } from '@/components/providers';
 import { FadeUp, LineReveal } from '@/components/motion';
 import { Button } from '@/components/ui';
 import * as AccordionPrimitive from '@radix-ui/react-accordion';
@@ -16,8 +15,11 @@ import { ChevronDown, Link as LinkIcon, ExternalLink, ArrowLeft } from 'lucide-r
 import Link from 'next/link';
 
 export default function NoticePage() {
+  const [open, setOpen] = useState<string[]>([]);
+  const allOpen = open.length === NOTICE_ITEMS.length;
+
   return (
-    <LenisProvider>
+    <>
       <Header />
       <main id="main-content" className="min-h-screen">
         <section className="section bg-paper-deep" aria-labelledby="notice-title">
@@ -80,16 +82,16 @@ export default function NoticePage() {
             {/* 공지사항 아코디언 */}
             <FadeUp delay={0.3} duration={0.8} y={16}>
               <div className="border border-basalt/20 rounded-[4px] overflow-hidden bg-paper">
-                <AccordionPrimitive.Root type="single" collapsible className="divide-y divide-basalt/10">
+                <AccordionPrimitive.Root type="multiple" value={open} onValueChange={setOpen} className="divide-y divide-basalt/10">
                   {NOTICE_ITEMS.map((item, index) => (
                     <AccordionPrimitive.Item key={index} value={String(index)} className="overflow-hidden">
                       <AccordionPrimitive.Header>
-                        <AccordionPrimitive.Trigger className="flex items-start justify-between gap-4 w-full px-6 py-5 text-left text-base font-medium text-ink hover:text-sea transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sea focus-visible:ring-offset-2 focus-visible:ring-offset-paper">
+                        <AccordionPrimitive.Trigger className="group flex items-start justify-between gap-4 w-full px-6 py-5 text-left text-base font-medium text-ink hover:text-sea transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sea focus-visible:ring-offset-2 focus-visible:ring-offset-paper">
                           <span className="flex-1 pr-4 leading-relaxed">{item}</span>
-                          <ChevronDown className="w-5 h-5 text-basalt/60 flex-shrink-0 mt-0.5 transition-transform duration-300 ease-out data-[state=open]:rotate-180" aria-hidden="true" />
+                          <ChevronDown className="w-5 h-5 text-basalt/60 flex-shrink-0 mt-0.5 transition-transform duration-500 ease-out group-data-[state=open]:rotate-180 group-data-[state=open]:text-sea" aria-hidden="true" />
                         </AccordionPrimitive.Trigger>
                       </AccordionPrimitive.Header>
-                      <AccordionPrimitive.Content className="overflow-hidden text-basalt leading-relaxed">
+                      <AccordionPrimitive.Content className="accordion-content text-basalt leading-relaxed">
                         <div className="px-6 pb-6 pt-2 text-sm border-t border-basalt/10">
                           이 항목은 펜션 이용 시 반드시 준수해야 할 규정입니다. 위반 시 퇴실 조치 또는 환불 불가 사유가 될 수 있으니 유의해주시기 바랍니다.
                         </div>
@@ -102,7 +104,7 @@ export default function NoticePage() {
 
             {/* 모두 펼치기/접기 버튼 */}
             <FadeUp delay={0.4} duration={0.8} y={16} className="mt-8">
-              <AllToggleButton />
+              <AllToggleButton allOpen={allOpen} onToggle={() => setOpen(allOpen ? [] : NOTICE_ITEMS.map((_, i) => String(i)))} />
             </FadeUp>
 
             {/* 하단 안내 */}
@@ -120,35 +122,16 @@ export default function NoticePage() {
       </main>
       <Footer />
       <MobileBottomBar />
-    </LenisProvider>
+    </>
   );
 }
 
-function AllToggleButton() {
-  const [allOpen, setAllOpen] = useState(false);
-  const [triggers, setTriggers] = useState<Element[]>([]);
-
-  useEffect(() => {
-    const triggers = document.querySelectorAll('[data-radix-accordion-trigger]');
-    setTriggers(Array.from(triggers));
-  }, []);
-
-  const toggleAll = () => {
-    const newState = !allOpen;
-    setAllOpen(newState);
-    triggers.forEach((trigger) => {
-      const isOpen = trigger.getAttribute('data-state') === 'open';
-      if (isOpen !== newState) {
-        (trigger as HTMLElement).click();
-      }
-    });
-  };
-
+function AllToggleButton({ allOpen, onToggle }: { allOpen: boolean; onToggle: () => void }) {
   return (
     <div className="text-center">
-      <Button variant="secondary" onClick={toggleAll} size="sm">
+      <Button variant="secondary" onClick={onToggle} size="sm">
         {allOpen ? '모두 접기' : '모두 펼치기'}
-        <ChevronDown className={cn('w-4 h-4 stroke-[1.5] transition-transform', allOpen && 'rotate-180')} aria-hidden="true" />
+        <ChevronDown className={cn('w-4 h-4 stroke-[1.5] transition-transform duration-500', allOpen && 'rotate-180')} aria-hidden="true" />
       </Button>
     </div>
   );

@@ -45,6 +45,12 @@ const DEFAULT_STATE = {
   _hasHydrated: false,
 };
 
+function toDate(value: unknown): Date | null {
+  if (!value) return null;
+  const d = value instanceof Date ? value : new Date(value as string | number);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
 export const useBookingStore = create<BookingState>()(
   persist(
     (set) => ({
@@ -74,17 +80,18 @@ export const useBookingStore = create<BookingState>()(
         guestName: state.guestName,
         guestPhone: state.guestPhone,
       }),
+      // localStorage는 JSON이라 Date가 문자열로 저장됨 -> 복원 시점에 Date로 변환
+      merge: (persisted, current) => {
+        const saved = (persisted ?? {}) as Partial<BookingState>;
+        return {
+          ...current,
+          ...saved,
+          checkIn: toDate(saved.checkIn),
+          checkOut: toDate(saved.checkOut),
+        };
+      },
       onRehydrateStorage: () => (state) => {
-        if (state) {
-          state.setHasHydrated(true);
-          // Date 객체 복원
-          if (state.checkIn && typeof state.checkIn === 'string') {
-            state.checkIn = new Date(state.checkIn);
-          }
-          if (state.checkOut && typeof state.checkOut === 'string') {
-            state.checkOut = new Date(state.checkOut);
-          }
-        }
+        state?.setHasHydrated(true);
       },
     }
   )

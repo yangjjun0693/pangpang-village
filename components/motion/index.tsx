@@ -4,6 +4,8 @@ import { motion, type HTMLMotionProps } from 'motion/react';
 import { cn } from '@/lib/cn';
 import { forwardRef } from 'react';
 
+export const VIEWPORT = { once: true, margin: '0px 0px -12% 0px' } as const;
+
 interface FadeUpProps extends HTMLMotionProps<'div'> {
   delay?: number;
   duration?: number;
@@ -16,7 +18,8 @@ export const FadeUp = forwardRef<HTMLDivElement, FadeUpProps>(
     <motion.div
       ref={ref}
       initial={{ opacity: 0, y }}
-      animate={{ opacity: 1, y: 0 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={VIEWPORT}
       transition={{ duration, ease: [0.22, 1, 0.36, 1], delay }}
       className={cn(className)}
       {...props}
@@ -46,7 +49,8 @@ export const LineReveal = forwardRef<HTMLDivElement, LineRevealProps>(
           <motion.span
             key={i}
             initial={{ opacity: 0, y: '100%' }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+      viewport={VIEWPORT}
             transition={{ duration, ease: [0.22, 1, 0.36, 1], delay: delay + i * stagger }}
             style={{ display: 'block' }}
           >
@@ -91,7 +95,8 @@ export const ClipReveal = forwardRef<HTMLDivElement, ClipRevealProps>(
     <motion.div
       ref={ref}
       initial={{ clipPath: 'inset(0 0 100% 0)' }}
-      animate={{ clipPath: 'inset(0 0 0 0)' }}
+      whileInView={{ clipPath: 'inset(0 0 0 0)' }}
+      viewport={VIEWPORT}
       transition={{ duration, ease: [0.22, 1, 0.36, 1], delay }}
       className={cn('overflow-hidden', className)}
       {...props}
@@ -138,7 +143,8 @@ export const StaggerContainer = forwardRef<HTMLDivElement, StaggerContainerProps
     <motion.div
       ref={ref}
       initial="hidden"
-      animate="show"
+      whileInView="show"
+      viewport={VIEWPORT}
       variants={{
         hidden: { opacity: 0 },
         show: {

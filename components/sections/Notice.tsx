@@ -9,7 +9,7 @@ import { ChevronDown, Link as LinkIcon, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 
 export function Notice() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [open, setOpen] = useState<string[]>([]);
 
   return (
     <section id="notice" className="section bg-paper-deep" aria-labelledby="notice-title">
@@ -22,17 +22,17 @@ export function Notice() {
 
         <FadeUp delay={0.1} duration={0.8} y={16}>
           <div className="border border-basalt/20 rounded-[4px] overflow-hidden bg-paper mb-12">
-            <AccordionPrimitive.Root type="multiple" value={openIndex !== null ? [String(openIndex)] : []} onValueChange={(v) => setOpenIndex(v[0] ? parseInt(v[0], 10) : null)}>
+            <AccordionPrimitive.Root type="multiple" value={open} onValueChange={setOpen}>
               <div className="divide-y divide-basalt/10">
                 {NOTICE_ITEMS.map((item, index) => (
                   <AccordionPrimitive.Item key={index} value={String(index)} className="overflow-hidden">
                     <AccordionPrimitive.Header>
-                      <AccordionPrimitive.Trigger className="flex items-center justify-between w-full px-6 py-5 text-left text-base font-medium text-ink hover:text-sea transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sea focus-visible:ring-offset-2 focus-visible:ring-offset-paper">
+                      <AccordionPrimitive.Trigger className="group flex items-center justify-between w-full px-6 py-5 text-left text-base font-medium text-ink hover:text-sea transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sea focus-visible:ring-offset-2 focus-visible:ring-offset-paper">
                         <span className="pr-4">{item}</span>
-                        <ChevronDown className="w-5 h-5 text-basalt/60 flex-shrink-0 transition-transform duration-300 ease-out data-[state=open]:rotate-180" aria-hidden="true" />
+                        <ChevronDown className="w-5 h-5 text-basalt/60 flex-shrink-0 transition-transform duration-500 ease-out group-data-[state=open]:rotate-180 group-data-[state=open]:text-sea" aria-hidden="true" />
                       </AccordionPrimitive.Trigger>
                     </AccordionPrimitive.Header>
-                    <AccordionPrimitive.Content className="overflow-hidden text-basalt leading-relaxed">
+                    <AccordionPrimitive.Content className="accordion-content text-basalt leading-relaxed">
                       <div className="px-6 pb-6 pt-2 text-sm">
                         이 항목에 대한 상세 내용은 이용안내 전문 페이지에서 확인하실 수 있습니다.
                       </div>

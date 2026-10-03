@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { cn } from '@/lib/cn';
 import { FLOOR_TOUR_IMAGES } from '@/data/images';
@@ -30,114 +30,17 @@ const FLOOR_DATA = [
   },
 ] as const;
 
+/* 층별 투어 - 스크롤 고정(pin) 없이 단순 스택 */
 export function FloorTour() {
   const reducedMotion = useReducedMotion();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const pinRef = useRef<HTMLDivElement>(null);
-  const imageRef = useRef<HTMLDivElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
-  const crossSectionRef = useRef<SVGSVGElement>(null);
-
-  // GSAP 초기화 - 데스크톱에서만, reduced-motion 아닐 때만
-  useEffect(() => {
-    if (reducedMotion || typeof window === 'undefined' || window.innerWidth < 1024) return;
-
-    const initGSAP = async () => {
-      const { gsap } = await import('gsap');
-      const { ScrollTrigger } = await import('gsap/ScrollTrigger');
-      gsap.registerPlugin(ScrollTrigger);
-
-      const container = containerRef.current;
-      const pin = pinRef.current;
-      const imageEl = imageRef.current;
-      const listEl = listRef.current;
-      const crossSection = crossSectionRef.current;
-
-      if (!container || !pin || !imageEl || !listEl || !crossSection) return;
-
-      // Lenis 인스턴스 가져와서 ScrollTrigger와 동기화
-      const lenis = (window as any).__lenis__;
-      if (lenis) {
-        ScrollTrigger.scrollerProxy(document.documentElement, {
-          scrollTop(value) {
-            return arguments.length ? lenis.scrollTo(value, { immediate: true }) : lenis.scroll;
-          },
-          getBoundingClientRect() {
-            return { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
-          },
-          pinType: document.documentElement.style.transform ? 'transform' : 'fixed',
-        });
-
-        // Lenis scroll 이벤트마다 ScrollTrigger 업데이트
-        lenis.on('scroll', ScrollTrigger.update);
-      }
-
-      // 이미지 크로스페이드 + 리스트 하이라이트 + 단면도 하이라이트
-      const floors = FLOOR_DATA;
-      const totalFloors = floors.length;
-
-      // ScrollTrigger 타임라인 생성
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: container,
-          start: 'top top',
-          end: `+=${totalFloors * 100}%`,
-          pin: pin,
-          pinSpacing: true,
-          scrub: 1,
-          anticipatePin: 1,
-          scroller: lenis ? document.documentElement : undefined,
-        },
-      });
-
-      floors.forEach((floor, index) => {
-        const progressStart = index / totalFloors;
-        const progressEnd = (index + 1) / totalFloors;
-
-        // 이미지 페이드 전환 (절대 위치로 겹쳐있음)
-        tl.to(imageEl.querySelectorAll('.floor-image'), {
-          opacity: (i) => (i === index ? 1 : 0),
-          duration: 0.01, // scrub으로 제어되므로 즉시 전환처럼 보이게
-        }, progressStart * totalFloors);
-
-        // 리스트 항목 하이라이트
-        const listItems = listEl.querySelectorAll('.floor-list-item');
-        tl.to(listItems, {
-          color: (i) => (i === index ? '#1C2B2E' : '#4A4D4B'),
-          fontWeight: (i) => (i === index ? 500 : 400),
-          duration: 0.01,
-        }, progressStart * totalFloors);
-
-        // 단면도 층 하이라이트
-        const floorPaths = crossSection.querySelectorAll('.floor-path');
-        tl.to(floorPaths, {
-          stroke: (i) => (i === index ? '#2F5D62' : '#A8864F'),
-          strokeWidth: (i) => (i === index ? 2 : 1),
-          filter: (i) => (i === index ? 'drop-shadow(0 0 4px rgba(47,93,98,0.4))' : 'none'),
-          duration: 0.01,
-        }, progressStart * totalFloors);
-      });
-
-      // 초기 상태 설정
-      gsap.set(imageEl.querySelectorAll('.floor-image'), { opacity: 0 });
-      gsap.set(imageEl.querySelector('.floor-image'), { opacity: 1 });
-
-      return () => {
-        ScrollTrigger.getAll().forEach((st) => st.kill());
-        if (lenis) {
-          lenis.off('scroll', ScrollTrigger.update);
-        }
-      };
-    };
-
-    initGSAP();
-  }, [reducedMotion]);
-
-  // 모바일에서는 단순 스크롤 진입 애니메이션
   const [visibleFloors, setVisibleFloors] = useState<Set<number>>(new Set());
 
   useEffect(() => {
-    if (reducedMotion || window.innerWidth >= 1024) return;
+    const items = document.querySelectorAll('[data-floor-item]');
+    if (reducedMotion || typeof IntersectionObserver === 'undefined') {
+      setVisibleFloors(new Set(Array.from(items).map((_, i) => i)));
+      return;
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -151,136 +54,10 @@ export function FloorTour() {
       { threshold: 0.3, rootMargin: '0px 0px -100px 0px' }
     );
 
-    const items = document.querySelectorAll('[data-floor-item]');
     items.forEach((item) => observer.observe(item));
-
     return () => observer.disconnect();
   }, [reducedMotion]);
 
-  if (reducedMotion || typeof window !== 'undefined' && window.innerWidth < 1024) {
-    return <FloorTourMobile visibleFloors={visibleFloors} />;
-  }
-
-  return (
-    <section
-      id="floor-tour"
-      ref={containerRef}
-      className="relative bg-paper"
-      aria-labelledby="floor-tour-title"
-    >
-      <div className="container">
-        {/* 헤더 */}
-        <div className="mb-12 md:mb-16 max-w-xl">
-          <h2 id="floor-tour-title" className="sr-only">층별 투어</h2>
-          <LineReveal
-            as="p"
-            className="letter-wide text-sea mb-2"
-          >
-            Floor Tour
-          </LineReveal>
-          <LineReveal
-            as="h3"
-            duration={0.9}
-            className="font-display font-medium text-3xl md:text-5xl lg:text-6xl text-ink leading-[1.2]"
-          >
-            세 개 층, <br />하나의 독채
-          </LineReveal>
-        </div>
-
-        {/* 핀 영역 */}
-        <div ref={pinRef} className="relative">
-          <div className="grid lg:grid-cols-[1fr_1.2fr] gap-8 lg:gap-12 items-start">
-            {/* 좌측: 층 번호 + 시설 리스트 + 단면도 */}
-            <div className="lg:sticky lg:top-24 lg:max-h-[70vh] flex flex-col" role="complementary" aria-label="층별 시설 안내">
-              {/* 큰 층 번호 - Cormorant */}
-              <div className="mb-8">
-                <LineReveal
-                  as="div"
-                  className="font-accent font-medium text-6xl md:text-8xl lg:text-9xl text-sea/20 tracking-tight leading-none select-none"
-                  aria-hidden="true"
-                >
-                  1F / 2F / 3F
-                </LineReveal>
-              </div>
-
-              {/* 시설 리스트 */}
-              <div ref={listRef} className="flex-1 overflow-y-auto pr-4 lg:pr-0 mb-8" role="list" aria-label="층별 시설 목록">
-                {FLOOR_DATA.map((floor, index) => (
-                  <div
-                    key={floor.floor}
-                    className="floor-list-item py-4 border-b border-basalt/10 transition-all duration-500 ease-out"
-                    role="listitem"
-                    style={{ color: index === 0 ? '#1C2B2E' : '#4A4D4B', fontWeight: index === 0 ? 500 : 400 }}
-                  >
-                    <div className="flex items-baseline gap-3 mb-2">
-                      <span className="font-accent font-medium text-2xl md:text-3xl text-sea tabular-nums">
-                        {floor.floor}
-                      </span>
-                      <span className="font-display font-medium text-lg text-ink">{floor.label}</span>
-                    </div>
-                    <ul className="space-y-1.5 ml-10 text-basalt" role="list">
-                      {floor.facilities.map((facility) => (
-                        <li key={facility} className="text-sm leading-relaxed">
-                          {facility}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-
-              {/* 단면도 SVG */}
-              <FadeUp delay={0.4} duration={0.8} y={16}>
-                <BuildingCrossSection ref={crossSectionRef} />
-              </FadeUp>
-            </div>
-
-            {/* 우측: 이미지 영역 - 절대 위치로 겹침 */}
-            <div
-              ref={imageRef}
-              className="relative aspect-[3/4] lg:aspect-[4/5] rounded-[4px] overflow-hidden bg-basalt/10"
-              role="img"
-              aria-label="층별 내부 전경"
-            >
-              {FLOOR_DATA.map((floor, index) => (
-                <div
-                  key={floor.floor}
-                  className="floor-image absolute inset-0 transition-opacity duration-700 ease-out"
-                  style={{ opacity: index === 0 ? 1 : 0, zIndex: 3 - index }}
-                  aria-hidden={index !== 0}
-                >
-                  <img
-                    src={floor.image.src}
-                    alt={`${floor.label}: ${floor.image.alt}`}
-                    className="w-full h-full object-cover"
-                    loading={index === 0 ? 'eager' : 'lazy'}
-                    width={floor.image.width}
-                    height={floor.image.height}
-                  />
-                  {/* 층 라벨 오버레이 */}
-                  <div className="absolute bottom-6 left-6 flex items-baseline gap-2 text-paper">
-                    <span className="font-accent font-medium text-3xl md:text-4xl">{floor.floor}</span>
-                    <span className="font-display font-medium text-lg md:text-xl">{floor.label}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* 하단 여백 - 스크롤 공간 확보 */}
-        <div className="h-64 lg:h-0" aria-hidden="true" />
-      </div>
-    </section>
-  );
-}
-
-/* 모바일용 단순 스택 버전 */
-function FloorTourMobile({
-  visibleFloors,
-}: {
-  visibleFloors: Set<number>;
-}) {
   return (
     <section
       id="floor-tour"
@@ -346,7 +123,7 @@ function FloorTourMobile({
           ))}
         </div>
 
-        {/* 단면도도 모바일에서 표시 */}
+        {/* 단면도 */}
         <FadeUp delay={0.3} duration={0.8} y={16} className="mt-12">
           <BuildingCrossSection />
         </FadeUp>

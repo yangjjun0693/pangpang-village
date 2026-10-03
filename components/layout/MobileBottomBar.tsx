@@ -35,7 +35,7 @@ export function MobileBottomBar() {
       transition={{ type: 'spring', damping: 25, stiffness: 200 }}
       className={cn(
         'fixed bottom-0 left-0 right-0 z-40',
-        'bg-paper/95 backdrop-blur-sm border-t border-basalt/20',
+        'glass-strong rounded-t-[20px] border-b-0',
         'px-4 py-3 safe-area-inset-bottom',
         'flex items-center justify-between gap-4'
       )}

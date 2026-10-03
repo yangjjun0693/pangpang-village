@@ -4,7 +4,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/lib/cn';
 import { GALLERY_IMAGES } from '@/data/images';
-import { FadeUp, LineReveal, ClipReveal } from '@/components/motion';
+import { LineReveal } from '@/components/motion';
+import { ImageReveal } from '@/components/motion/extras';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X, ChevronLeft, ChevronRight, Maximize } from 'lucide-react';
 
@@ -38,46 +39,41 @@ export function Gallery() {
           <LineReveal as="h3" duration={0.9} className="font-display font-medium text-3xl md:text-5xl lg:text-6xl text-ink leading-[1.2]">공간의 <br />풍경</LineReveal>
         </div>
 
-        <FadeUp delay={0.1} duration={0.8} y={16}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-4 lg:grid-rows-2 lg:gap-4" role="list" aria-label="갤러리 이미지">
-            {GALLERY_IMAGES.map((image, index) => (
-              <article
-                key={image.id}
-                className={cn(
-                  'relative overflow-hidden rounded-[4px] bg-basalt/10 cursor-zoom-in group',
-                  index === 0 && 'md:col-span-2 lg:col-span-2 lg:row-span-2',
-                  index === 1 && 'md:col-span-1 lg:col-span-1',
-                  index === 2 && 'md:col-span-1 lg:col-span-1',
-                  index === 3 && 'md:col-span-2 lg:col-span-2'
-                )}
-                role="listitem"
-              >
-                <ClipReveal delay={index * 0.05} duration={0.9}>
-                  <img
-                    src={image.src}
-                    alt={image.alt}
-                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                    loading={index < 2 ? 'eager' : 'lazy'}
-                    width={image.width}
-                    height={image.height}
-                    onError={(e) => {
-                      const fallbackSrc = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 768'%3E%3Crect fill='${image.blurColor.slice(1)}' width='1024' height='768'/%3E%3Ctext x='512' y='384' font-family='system-ui' font-size='24' fill='%23666' text-anchor='middle' dominant-baseline='middle'%3E이미지 로드 실패%3C/text%3E%3C/svg%3E`;
-                      e.currentTarget.src = fallbackSrc;
-                    }}
-                  />
-                </ClipReveal>
-                <div className="absolute inset-0 bg-gradient-to-t from-ink/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center" aria-hidden="true">
-                  <Maximize className="w-8 h-8 text-paper stroke-[1.5]" />
-                </div>
+        <div className="grid grid-cols-12 gap-3 md:gap-5" role="list" aria-label="갤러리 이미지">
+          {GALLERY_IMAGES.map((image, index) => (
+            <ImageReveal
+              key={image.id}
+              delay={(index % 2) * 0.15}
+              className={cn(
+                'col-span-12',
+                index % 4 === 0 && 'md:col-span-7',
+                index % 4 === 1 && 'md:col-span-5',
+                index % 4 === 2 && 'md:col-span-5',
+                index % 4 === 3 && 'md:col-span-7'
+              )}
+            >
+              <article className="relative overflow-hidden group cursor-zoom-in aspect-[4/3]" role="listitem" style={{ background: image.blurColor }}>
+                <img
+                  src={image.src}
+                  alt={image.alt}
+                  width={image.width}
+                  height={image.height}
+                  loading={index < 2 ? 'eager' : 'lazy'}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1400ms] ease-out group-hover:scale-[1.06]"
+                />
+                <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/25 transition-colors duration-700" aria-hidden="true" />
+                <span className="absolute left-5 bottom-4 font-accent text-3xl text-paper opacity-0 translate-y-3 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-700" aria-hidden="true">
+                  0{index + 1}
+                </span>
                 <button
                   onClick={() => setOpenIndex(index)}
-                  className="absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sea focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+                  className="absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sea focus-visible:ring-inset"
                   aria-label={`${image.alt} 크게 보기`}
                 />
               </article>
-            ))}
-          </div>
-        </FadeUp>
+            </ImageReveal>
+          ))}
+        </div>
 
         <AnimatePresence>
           {openIndex !== null && (

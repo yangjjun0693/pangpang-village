@@ -665,3 +665,85 @@
   from { transform: scale(0.95); }
   to { transform: scale(1); }
 }
+
+/* =====================================================================
+   EDITORIAL LAYER
+   ===================================================================== */
+main section [class*="rounded-[4px]"], footer [class*="rounded-[4px]"] { border-radius: 0; }
+main section [class*="border-basalt/20"] { border-color: rgba(28, 43, 46, 0.12); }
+
+/* 마퀴 */
+.marquee-track { animation: marquee 32s linear infinite; will-change: transform; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* 버튼: 아래에서 차오르는 필 */
+.btn { border-radius: 999px !important; padding-left: 1.9rem; padding-right: 1.9rem; position: relative; overflow: hidden; isolation: isolate; transition: color 0.6s var(--ease-out), transform 0.6s var(--ease-out); }
+.btn::before { content: ''; position: absolute; inset: 0; z-index: -1; transform: translateY(102%); border-radius: 50% 50% 0 0 / 100% 100% 0 0; transition: transform 0.7s var(--ease-out), border-radius 0.7s var(--ease-out); }
+.btn:hover::before { transform: none; border-radius: 0; }
+.btn-primary { background-color: var(--color-sea) !important; }
+.btn-primary::before { background: var(--color-ink); }
+.btn-secondary { border-color: rgba(28, 43, 46, 0.25) !important; }
+.btn-secondary::before { background: var(--color-ink); }
+.btn-secondary:hover { color: var(--color-paper); }
+.btn-ghost::before { background: rgba(28, 43, 46, 0.08); }
+
+/* 인풋 */
+.input { border: 0 !important; border-bottom: 1px solid rgba(28, 43, 46, 0.25) !important; border-radius: 0 !important; background: transparent !important; box-shadow: none; padding-left: 0.25rem; transition: border-color 0.4s var(--ease-out); }
+.input.pl-10 { padding-left: 2.5rem; }
+.input:focus { border-bottom-color: var(--color-sea) !important; box-shadow: none !important; }
+
+/* 헤더 / 하단바 / 퀵바 글라스 */
+header[role="banner"].bg-paper\/95 { background: rgba(245, 241, 232, 0.7) !important; -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5); border-color: transparent !important; }
+.hero-glass { background: rgba(245, 241, 232, 0.82) !important; -webkit-backdrop-filter: blur(22px) saturate(1.5); backdrop-filter: blur(22px) saturate(1.5); border: 0 !important; border-radius: 0 !important; box-shadow: 0 40px 80px -40px rgba(18, 41, 45, 0.45); }
+.glass-strong { background: rgba(245, 241, 232, 0.85); -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4); box-shadow: 0 -10px 40px -20px rgba(28, 43, 46, 0.25); }
+
+::selection { background: var(--color-sea); color: var(--color-paper); }
+
+@media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } }
+
+/* =====================================================================
+   아코디언 펼침/접힘 + 글로벌 글래스모피즘
+   ===================================================================== */
+.accordion-content { overflow: hidden; }
+.accordion-content[data-state="open"] { animation: acc-down 0.6s var(--ease-out); }
+.accordion-content[data-state="closed"] { animation: acc-up 0.45s var(--ease-out); }
+.accordion-content[data-state="open"] > div { animation: acc-fade 0.7s var(--ease-out) 0.08s both; }
+@keyframes acc-down { from { height: 0; opacity: 0; } to { height: var(--radix-accordion-content-height); opacity: 1; } }
+@keyframes acc-up { from { height: var(--radix-accordion-content-height); opacity: 1; } to { height: 0; opacity: 0; } }
+@keyframes acc-fade { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .accordion-content, .accordion-content > div { animation: none !important; } }
+
+/* 배경: 은은한 고정 메시 그라디언트 -> 글라스가 비쳐 보이는 층 */
+body {
+  background:
+    radial-gradient(60vw 60vw at 6% 0%, rgba(127, 181, 176, 0.38), transparent 62%),
+    radial-gradient(52vw 52vw at 100% 38%, rgba(227, 196, 141, 0.34), transparent 62%),
+    radial-gradient(56vw 56vw at 18% 100%, rgba(244, 182, 192, 0.26), transparent 62%),
+    #F5F1E8;
+  background-attachment: fixed;
+}
+@media (hover: none) { body { background-attachment: scroll; } }
+main section.bg-paper, footer.bg-paper { background-color: transparent; }
+main section.bg-paper-deep { background-color: rgba(236, 230, 217, 0.4); }
+
+/* 카드/패널/아코디언 컨테이너 전부 글라스 */
+.card, main section [class*="rounded-[4px]"][class*="bg-paper"] {
+  background: rgba(255, 255, 255, 0.42) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(1.7);
+  backdrop-filter: blur(22px) saturate(1.7);
+  border-color: transparent !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.35), 0 24px 50px -28px rgba(28, 43, 46, 0.28);
+  border-radius: 16px !important;
+  transition: background 0.5s var(--ease-out), box-shadow 0.5s var(--ease-out), transform 0.5s var(--ease-out);
+}
+.card:hover, main section [class*="rounded-[4px]"][class*="bg-paper"]:hover { background: rgba(255, 255, 255, 0.58) !important; }
+.accordion-content[data-state] { border-radius: 0; }
+
+/* 인풋 / 보조 버튼 / 떠 있는 컨트롤 */
+.input { background: rgba(255, 255, 255, 0.4) !important; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); padding-top: 0.8rem; padding-bottom: 0.8rem; border-radius: 10px 10px 0 0 !important; }
+.input:focus { background: rgba(255, 255, 255, 0.7) !important; }
+.btn-secondary { background: rgba(255, 255, 255, 0.35); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7); }
+[class*="bg-paper/90"][class*="backdrop-blur"] { background: rgba(255, 255, 255, 0.45) !important; -webkit-backdrop-filter: blur(16px) saturate(1.6); backdrop-filter: blur(16px) saturate(1.6); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8); }
+.hero-glass, .glass-strong { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 30px 70px -36px rgba(18, 41, 45, 0.5); }
+.hero-glass { background: rgba(255, 255, 255, 0.45) !important; border-radius: 18px !important; }
+.glass-strong { background: rgba(255, 255, 255, 0.55); border-radius: 20px 20px 0 0; }

@@ -1,26 +1,31 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { motion } from 'motion/react';
-import Link from 'next/link';
-import { cn } from '@/lib/cn';
-import { HERO_IMAGE, ROOM_IMAGES } from '@/data/images';
+import { useRef, useState, useEffect } from 'react';
+import { motion, useScroll, useTransform, useMotionTemplate } from 'motion/react';
+import { HERO_IMAGE } from '@/data/images';
 import { HERO_COPY } from '@/data/content';
 import { SITE } from '@/config/site';
 import { Button } from '@/components/ui';
-import { FadeUp, LineReveal, ClipReveal, KenBurns } from '@/components/motion';
-import { Calendar, Users, ChevronDown } from 'lucide-react';
+import { FadeUp, LineReveal } from '@/components/motion';
+import { Marquee } from '@/components/motion/extras';
+import { Calendar, Users } from 'lucide-react';
 import { useBookingStore } from '@/store/booking';
 import { formatDateShort } from '@/lib/format';
 
+const MARQUEE_ITEMS = ['라메르', '피에르', '독채', '복층 3층', '30평', '귀덕리 해안도로'];
+
 export function Hero() {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const imgWrap = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   const { checkIn, checkOut, roomSlug, setRoomSlug } = useBookingStore();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => setMounted(true), []);
+
+  /* 스크롤하면 이미지 프레임이 좌우로 열리며 풀블리드가 된다 */
+  const { scrollYProgress } = useScroll({ target: imgWrap, offset: ['start end', 'start 15%'] });
+  const inset = useTransform(scrollYProgress, [0, 1], [16, 0]);
+  const clip = useMotionTemplate`inset(0% ${inset}% 0% ${inset}%)`;
+  const zoom = useTransform(scrollYProgress, [0, 1], [1.4, 1.02]);
 
   const handleQuickReserve = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -31,77 +36,59 @@ export function Hero() {
     }
   };
 
+  const [line1, line2] = [SITE.nameEn.split(' ').slice(0, 2).join(' '), SITE.nameEn.split(' ').slice(2).join(' ')];
+
   return (
-    <section
-      ref={scrollRef}
-      id="hero"
-      className="relative min-h-screen flex items-end overflow-hidden"
-      aria-labelledby="hero-title"
-    >
-      {/* 배경 이미지 - 풀블리드 + 켄번즈 */}
-      <div className="absolute inset-0 z-0" aria-hidden="true">
-        <KenBurns duration={22} scaleStart={1} scaleEnd={1.05}>
-          <div className="absolute inset-0">
-            <img
-              src={HERO_IMAGE.src}
-              alt=""
-              className="w-full h-full object-cover"
-              loading="eager"
-              fetchPriority="high"
-              width={HERO_IMAGE.width}
-              height={HERO_IMAGE.height}
-            />
-            {/* 어두운 오버레이 그라디언트 - 텍스트 가독성용 */}
-            <div className="absolute inset-0 bg-gradient-to-t from-ink/60 via-ink/20 to-transparent" />
-            {/* 하단 페이드 - 다음 섹션과 자연스러운 연결 */}
-            <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-paper to-transparent" />
-          </div>
-        </KenBurns>
+    <section id="hero" className="relative bg-paper pt-28 md:pt-36 overflow-hidden" aria-labelledby="hero-title">
+      <div className="container px-6 md:px-10 lg:px-16">
+        <FadeUp delay={0.1} className="flex items-center justify-between text-xs tracking-[0.3em] uppercase text-basalt mb-8 md:mb-12">
+          <span>Jeju · Gwideok</span>
+          <span className="hidden sm:inline">Private 3F Villa</span>
+        </FadeUp>
+
+        <h1 id="hero-title" className="font-accent font-medium uppercase text-ink leading-[0.84] tracking-[-0.02em] text-[clamp(3.4rem,14.5vw,13rem)]">
+          <span className="block overflow-hidden pb-[0.06em]">
+            <motion.span className="block" initial={{ y: '105%' }} animate={{ y: 0 }} transition={{ duration: 1.3, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}>
+              {line1}
+            </motion.span>
+          </span>
+          <span className="block overflow-hidden pb-[0.06em] md:pl-[12vw]">
+            <motion.span className="block" initial={{ y: '105%' }} animate={{ y: 0 }} transition={{ duration: 1.3, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}>
+              {line2}
+            </motion.span>
+          </span>
+        </h1>
+
+        <div className="mt-10 md:mt-14 grid md:grid-cols-12 gap-6 items-end">
+          <LineReveal as="p" delay={0.6} className="md:col-span-7 font-display font-medium text-2xl md:text-4xl text-ink leading-snug">
+            {HERO_COPY.main}
+          </LineReveal>
+          <FadeUp delay={0.8} className="md:col-span-5 md:text-right text-basalt">
+            {HERO_COPY.sub}
+          </FadeUp>
+        </div>
       </div>
 
-      {/* 스크롤 유도 표시 */}
-      <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2"
-        animate={{ y: [0, 8, 0] }}
-        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-        aria-hidden="true"
-      >
-        <div className="w-px h-12 bg-sea/50 rounded-full overflow-hidden">
-          <motion.div
-            className="w-full h-1/3 bg-sea"
-            animate={{ y: [0, '100%'] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+      {/* 풀블리드 이미지 프레임 */}
+      <div ref={imgWrap} className="relative mt-14 md:mt-20 h-[70vh] md:h-[88vh]">
+        <motion.div className="absolute inset-0 overflow-hidden" style={{ clipPath: clip, background: HERO_IMAGE.blurColor }}>
+          <motion.img
+            src={HERO_IMAGE.src}
+            alt={HERO_IMAGE.alt}
+            width={HERO_IMAGE.width}
+            height={HERO_IMAGE.height}
+            loading="eager"
+            style={{ scale: zoom }}
+            className="absolute inset-0 w-full h-full object-cover"
           />
-        </div>
-        <ChevronDown className="w-5 h-5 text-sea stroke-[1.5]" />
-      </motion.div>
+        </motion.div>
+      </div>
 
-      {/* 콘텐츠 */}
-      <div className="container relative z-10 px-6 md:px-10 lg:px-16 pb-20 md:pb-28 lg:pb-36">
-        <div className="max-w-3xl">
-          {/* 메인 타이틀 - 줄 단위 리빌 */}
-          <h1 id="hero-title" className="font-display font-medium text-ink/5 mb-6">
-            <LineReveal
-              as="div"
-              duration={1}
-              stagger={0.12}
-              delay={0.2}
-              className="text-paper"
-            >
-              {HERO_COPY.main}
-            </LineReveal>
-          </h1>
-
-          {/* 서브 카피 */}
-          <p className="font-body text-paper/90 text-lg md:text-xl leading-relaxed mb-10 max-w-[30em]">
-            <FadeUp delay={0.6} duration={0.8} y={12}>
-              {HERO_COPY.sub}
-            </FadeUp>
-          </p>
-
-          {/* 예약 퀵바 */}
-          {mounted && (
-            <FadeUp delay={0.8} duration={0.8} y={16}>
+      {/* 예약 퀵바 - 이미지 하단에 걸치게 */}
+      <div className="container px-6 md:px-10 lg:px-16 relative z-10 -mt-14 md:-mt-16">
+        {mounted && (
+          <FadeUp delay={0.1}>
+            <div className="max-w-4xl mx-auto">
               <QuickBookingBar
                 checkIn={checkIn}
                 checkOut={checkOut}
@@ -109,10 +96,12 @@ export function Hero() {
                 onRoomChange={setRoomSlug}
                 onReserveClick={handleQuickReserve}
               />
-            </FadeUp>
-          )}
-        </div>
+            </div>
+          </FadeUp>
+        )}
       </div>
+
+      <Marquee items={MARQUEE_ITEMS} className="font-accent font-medium text-5xl md:text-8xl text-ink/90 py-16 md:py-24" />
     </section>
   );
 }
@@ -137,7 +126,7 @@ function QuickBookingBar({
 
   return (
     <div
-      className="bg-paper/95 backdrop-blur-sm border border-basalt/20 rounded-[4px] p-4 md:p-6 shadow-[0_4px_24px_rgba(28,43,46,0.08)]"
+      className="hero-glass p-4 md:p-6"
       role="search"
       aria-label="빠른 예약"
     >
