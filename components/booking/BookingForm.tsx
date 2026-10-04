@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { cn } from '@/lib/cn';
 import { SITE } from '@/config/site';
-import { ROOM_SPECS, ROOMS, type RoomSlug } from '@/data/content';
+import { ROOM_SPECS, ROOMS, EXTERNAL_BOOKING_NOTICE, type RoomSlug } from '@/data/content';
 import { Calendar } from './Calendar';
 import { Stepper } from './Stepper';
 import { PriceBreakdownView } from './PriceBreakdown';
@@ -15,7 +15,7 @@ import { Button, Input } from '@/components/ui';
 import { Badge } from '@/components/ui';
 import { FadeUp, LineReveal } from '@/components/motion';
 import { useBookingStore } from '@/store/booking';
-import { Check, AlertCircle, Info, Copy, ExternalLink } from 'lucide-react';
+import { Check, AlertCircle, Copy, ArrowUpRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -320,16 +320,52 @@ return (
               summary={summary}
               onCopy={onSummaryCopy}
               onNewInquiry={() => setSubmitted(false)}
-              externalLinks={[
-                { label: '야놀자', url: SITE.yanoljaUrl },
-                { label: '아고다', url: SITE.agodaUrl },
-              ].filter((l) => l.url)}
-              onNavigateExternal={onNavigateExternal}
             />
           </FadeUp>
         )}
+
+        <ExternalBooking
+          links={[
+            { label: '야놀자', url: SITE.yanoljaUrl },
+            { label: '아고다', url: SITE.agodaUrl },
+          ].filter((l) => l.url)}
+          onNavigate={onNavigateExternal}
+        />
       </div>
     </section>
+  );
+}
+
+function ExternalBooking({ links, onNavigate }: { links: { label: string; url: string }[]; onNavigate: (url: string) => void }) {
+  if (links.length === 0) return null;
+  return (
+    <FadeUp delay={0.1} className="mt-14 md:mt-20">
+      <p className="letter-wide text-sea mb-2">Other channels</p>
+      <h4 className="font-display font-medium text-2xl md:text-3xl text-ink mb-3">외부 예약</h4>
+      <p className="text-sm text-basalt/60 mb-6">{EXTERNAL_BOOKING_NOTICE}</p>
+      <div className="grid sm:grid-cols-2 gap-4">
+        {links.map((link) => (
+          <a
+            key={link.label}
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigate(link.url);
+            }}
+            className="group card flex items-center justify-between px-6 py-5 text-ink"
+          >
+            <span className="font-display font-medium text-lg">{link.label}</span>
+            <span className="flex items-center gap-2 text-sm text-basalt/60 group-hover:text-sea transition-colors duration-500">
+              예약하러 가기
+              <ArrowUpRight className="w-5 h-5 stroke-[1.5] transition-transform duration-500 group-hover:translate-x-1 group-hover:-translate-y-1" aria-hidden="true" />
+              <span className="sr-only">새 창에서 열림</span>
+            </span>
+          </a>
+        ))}
+      </div>
+    </FadeUp>
   );
 }
 
@@ -337,14 +373,10 @@ function SubmitSuccess({
   summary,
   onCopy,
   onNewInquiry,
-  externalLinks,
-  onNavigateExternal,
 }: {
   summary: string;
   onCopy: (summary: string) => void;
   onNewInquiry: () => void;
-  externalLinks: { label: string; url: string }[];
-  onNavigateExternal: (url: string) => void;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -385,35 +417,6 @@ function SubmitSuccess({
           </motion.div>
         )}
       </div>
-
-      {externalLinks.length > 0 && (
-        <div className="border border-basalt/20 rounded-[4px] p-6 bg-paper">
-          <h4 className="font-display font-medium text-lg text-ink mb-3 flex items-center gap-2">
-            <Info className="w-5 h-5 text-sea" />
-            다른 예약처에서 예약하기
-          </h4>
-          <p className="text-sm text-basalt/60 mb-4">외부 예약 사이트로 이동합니다. 사이트별로 요금과 잔여 객실이 다를 수 있습니다.</p>
-          <div className="flex flex-wrap gap-3">
-            {externalLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onNavigateExternal(link.url);
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-basalt bg-paper border border-basalt/20 rounded-[2px] hover:text-sea hover:border-sea/30 transition-all duration-200"
-              >
-                {link.label}
-                <ExternalLink className="w-4 h-4 stroke-[1.5]" aria-hidden="true" />
-                <span className="sr-only">새 창에서 열림</span>
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
 
       <Button variant="secondary" onClick={onNewInquiry} className="w-full">
         새로운 문의 작성
