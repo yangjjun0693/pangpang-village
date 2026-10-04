@@ -3,7 +3,27 @@ import { SITE } from '@/config/site';
 
 export const dynamic = 'force-static';
 
-export default async function() {
+const ADDRESS = '제주시 한림읍 귀덕7길 17';
+const TAGLINE = '제주 한림 귀덕 해안도로, 3층 독채 가족펜션';
+const FEATURES = '독채 · 복층 · 기준 4 / 최대 8';
+const PRICE = '339,000원~/박';
+
+async function loadFont(text: string): Promise<ArrayBuffer | null> {
+  try {
+    const css = await (
+      await fetch(`https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500&text=${encodeURIComponent(text)}`)
+    ).text();
+    const url = css.match(/src: url\((.+?)\) format\('(opentype|truetype)'\)/)?.[1];
+    if (!url) return null;
+    const res = await fetch(url);
+    return res.ok ? await res.arrayBuffer() : null;
+  } catch {
+    return null;
+  }
+}
+
+export default async function OpengraphImage() {
+  const font = await loadFont(SITE.name + TAGLINE + ADDRESS + FEATURES + PRICE);
   return new ImageResponse(
     (
       <div
@@ -46,7 +66,7 @@ export default async function() {
         />
 
         {/* 메인 워드마크 */}
-        <div style={{ textAlign: 'center', zIndex: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', zIndex: 1 }}>
           <div
             style={{
               fontSize: 72,
@@ -83,7 +103,7 @@ export default async function() {
               color: '#2F5D62',
             }}
           >
-            제주 한림 귀덕 해안도로, 3층 독채 가족펜션
+            {TAGLINE}
           </div>
         </div>
 
@@ -104,16 +124,13 @@ export default async function() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic' }}>📍</span>
-            <span>제주시 한림읍 귀덕7길 17</span>
+            <span>{ADDRESS}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic' }}>🏠</span>
-            <span>독채 · 복층 · 기준 4 / 최대 8</span>
+            <span>{FEATURES}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontFamily: 'Cormorant Garamond, serif', fontStyle: 'italic' }}>💰</span>
-            <span>339,000원~/박</span>
+            <span>{PRICE}</span>
           </div>
         </div>
 
@@ -133,6 +150,7 @@ export default async function() {
     {
       width: 1200,
       height: 630,
+      fonts: font ? [{ name: 'Noto Serif KR', data: font, weight: 500, style: 'normal' }] : undefined,
     }
   );
 }
